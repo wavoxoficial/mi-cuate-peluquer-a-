@@ -16,7 +16,8 @@ interface AuthState {
   updateProfile: (updates: Partial<Pick<User, 'name' | 'phone' | 'password'>>) => void;
 }
 
-const KEYS = { users: 'auth_users', session: 'auth_session' };
+const KEYS = { users: 'auth_users', session: 'auth_session', ver: 'auth_ver' };
+const AUTH_VERSION = '2'; // bump to force re-seed credentials
 
 const SEED_USERS: User[] = [
   {
@@ -24,7 +25,7 @@ const SEED_USERS: User[] = [
     name: 'Administrador',
     email: 'admin@barberpro.com',
     phone: '+52 555 000 0000',
-    password: 'admin123',
+    password: 'MiCuate2025',
     role: 'admin',
     createdAt: '2024-01-01',
     isActive: true,
@@ -34,7 +35,7 @@ const SEED_USERS: User[] = [
     name: 'Juan El Maestro',
     email: 'juan@barberpro.com',
     phone: '+52 555 400 0001',
-    password: 'emp123',
+    password: 'Maestro2025',
     role: 'employee',
     createdAt: '2024-01-01',
     isActive: true,
@@ -44,7 +45,7 @@ const SEED_USERS: User[] = [
     name: 'Carlos Mendoza',
     email: 'carlos@email.com',
     phone: '+52 555 123 4567',
-    password: 'client123',
+    password: 'Cliente2025',
     role: 'client',
     createdAt: '2024-01-01',
     isActive: true,
@@ -57,10 +58,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
 
   init: () => {
-    let users = loadFromStorage<User[]>(KEYS.users, []);
-    if (users.length === 0) {
+    // Version-based migration: re-seed if version changed
+    const storedVer = loadFromStorage<string>(KEYS.ver, '');
+    let users: User[];
+    if (storedVer !== AUTH_VERSION) {
       users = SEED_USERS;
       saveToStorage(KEYS.users, users);
+      saveToStorage(KEYS.ver, AUTH_VERSION);
+      // Clear old session so re-login with new credentials
+      saveToStorage(KEYS.session, null);
+    } else {
+      users = loadFromStorage<User[]>(KEYS.users, SEED_USERS);
     }
     const session = loadFromStorage<AuthSession | null>(KEYS.session, null);
     set({ users, session, isLoading: false });
@@ -127,9 +135,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!session) return;
     const updated = users.map(u => u.id === session.userId ? { ...u, ...updates } : u);
     saveToStorage(KEYS.users, updated);
-    const newSession = updates.name
-      ? { ...session, name: updates.name }
-      : session;
+    const newSession = updates.name ? { ...session, name: updates.name } : session;
     saveToStorage(KEYS.session, newSession);
     set({ users: updated, session: newSession });
   },

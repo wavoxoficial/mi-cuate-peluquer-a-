@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { Scissors } from 'lucide-react';
 import { useStore } from './store/useStore';
 import { useAuthStore } from './store/useAuthStore';
+import { useNotificationStore } from './store/useNotificationStore';
 import BottomNav from './components/layout/BottomNav';
 import Header from './components/layout/Header';
 import Dashboard from './components/dashboard/Dashboard';
@@ -36,48 +38,44 @@ function AppShell() {
   const role    = session?.role ?? 'client';
 
   return (
-    <div className="bg-dark-400 flex flex-col max-w-md mx-auto relative"
-         style={{ minHeight: '100svh' }}>
+    <div style={{ minHeight: '100svh', background: '#09090b', display: 'flex', flexDirection: 'column', maxWidth: '448px', margin: '0 auto', position: 'relative' }}>
       <Toaster
         position="top-center"
-        containerStyle={{ top: 60 }}
+        containerStyle={{ top: 64 }}
         toastOptions={{
           duration: 3000,
           style: {
-            background: '#141414',
+            background: 'rgba(22,22,24,0.98)',
             color: '#fff',
-            border: '1px solid rgba(255,255,255,0.1)',
+            border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: '0.875rem',
-            fontSize: '14px',
-            maxWidth: '340px',
+            fontSize: '13px',
+            fontWeight: '500',
+            maxWidth: '320px',
+            backdropFilter: 'blur(16px)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
           },
-          success: { iconTheme: { primary: '#d4a017', secondary: '#000' } },
+          success: { iconTheme: { primary: '#c9981a', secondary: '#000' } },
         }}
       />
       <Header />
       <main className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' } as any}>
         <Routes>
-          {/* Profile — all roles */}
           <Route path="/profile"    element={<ProfilePage />} />
-          {/* Restaurant — all roles */}
           <Route path="/restaurant" element={<Restaurant />} />
-          {/* Bookings — all roles (filtered by role inside) */}
           <Route path="/bookings"   element={<Bookings />} />
 
-          {/* Admin + Employee */}
           {(role === 'admin' || role === 'employee') && <>
             <Route path="/"          element={<Dashboard />} />
             <Route path="/clients"   element={<Clients />} />
           </>}
 
-          {/* Admin only */}
           {role === 'admin' && <>
             <Route path="/employees" element={<Employees />} />
             <Route path="/services"  element={<Services />} />
             <Route path="/settings"  element={<Settings />} />
           </>}
 
-          {/* Client home → bookings */}
           {role === 'client' && (
             <Route path="/" element={<Navigate to="/bookings" replace />} />
           )}
@@ -90,27 +88,53 @@ function AppShell() {
   );
 }
 
+/* ── Loading screen ─────────────────────────────────────────── */
+function Loader() {
+  return (
+    <div style={{
+      minHeight: '100svh', background: '#09090b',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: '1rem'
+    }}>
+      {/* Animated logo */}
+      <div style={{ position: 'relative' }}>
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
+          style={{ background: 'linear-gradient(135deg, #c9981a, #f0c040)', boxShadow: '0 0 40px rgba(201,152,26,0.5)' }}>
+          <Scissors size={28} className="text-black" strokeWidth={2.5} />
+        </div>
+        {/* Ring pulse */}
+        <div style={{
+          position: 'absolute', inset: -6, borderRadius: '1.375rem',
+          border: '1.5px solid rgba(201,152,26,0.35)',
+          animation: 'ringFade 1.4s ease-out infinite',
+        }} />
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: 18 }}>BarberPro</p>
+        <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, marginTop: 4 }}>Cargando sistema...</p>
+      </div>
+      <style>{`
+        @keyframes ringFade {
+          0%   { transform: scale(1);   opacity: 0.8; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function App() {
   const initStore = useStore(s => s.init);
   const { init: initAuth, session, isLoading } = useAuthStore();
+  const initNotif = useNotificationStore(s => s.init);
 
   useEffect(() => {
     initAuth();
     initStore();
+    initNotif();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-svh bg-dark-400 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gold-600 flex items-center justify-center animate-pulse">
-            <span className="text-2xl">💈</span>
-          </div>
-          <p className="text-white/30 text-sm">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <Loader />;
 
   return (
     <BrowserRouter>

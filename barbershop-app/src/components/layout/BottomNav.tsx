@@ -1,5 +1,8 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, CalendarCheck, UserCog, Scissors, UtensilsCrossed, Settings, User } from 'lucide-react';
+import {
+  LayoutDashboard, Users, CalendarCheck, Scissors,
+  UtensilsCrossed, Settings, User
+} from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -17,13 +20,13 @@ const EMPLOYEE_ITEMS = [
   { to: '/bookings',   icon: CalendarCheck,   label: 'Reservas' },
   { to: '/clients',    icon: Users,           label: 'Clientes' },
   { to: '/restaurant', icon: UtensilsCrossed, label: 'Mi Cuate' },
-  { to: '/profile',    icon: User,            label: 'Mi Perfil' },
+  { to: '/profile',    icon: User,            label: 'Perfil' },
 ];
 
 const CLIENT_ITEMS = [
   { to: '/bookings',   icon: CalendarCheck,   label: 'Mis Citas' },
   { to: '/restaurant', icon: UtensilsCrossed, label: 'Mi Cuate' },
-  { to: '/profile',    icon: User,            label: 'Mi Perfil' },
+  { to: '/profile',    icon: User,            label: 'Perfil' },
 ];
 
 export default function BottomNav() {
@@ -33,10 +36,17 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 bg-dark-100/97 backdrop-blur-md border-t border-white/6 max-w-md mx-auto"
-      style={{ paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom, 0px))' }}
+      className="fixed bottom-0 inset-x-0 z-40 max-w-md mx-auto"
+      style={{
+        background: 'rgba(13,13,15,0.96)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom, 0px))',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.6)',
+      }}
     >
-      <div className="flex items-stretch justify-around px-0.5 pt-1">
+      <div className="flex items-stretch justify-around px-1 pt-1.5">
         {items.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
@@ -46,8 +56,16 @@ export default function BottomNav() {
           >
             {({ isActive }) => (
               <>
-                <Icon size={19} strokeWidth={isActive ? 2.5 : 1.8} />
-                <span className="text-[8px] font-medium leading-none tracking-wide">{label}</span>
+                <div className="relative">
+                  <Icon
+                    size={20}
+                    strokeWidth={isActive ? 2.5 : 1.8}
+                    style={isActive ? {
+                      filter: 'drop-shadow(0 0 6px rgba(201,152,26,0.5))'
+                    } : undefined}
+                  />
+                </div>
+                <span className="text-[9px] font-semibold leading-none tracking-wide">{label}</span>
               </>
             )}
           </NavLink>
