@@ -10,6 +10,7 @@ import Bookings from './components/bookings/Bookings';
 import Employees from './components/employees/Employees';
 import Services from './components/services/Services';
 import Restaurant from './components/restaurant/Restaurant';
+import Settings from './components/settings/Settings';
 
 export default function App() {
   const init = useStore(s => s.init);
@@ -21,7 +22,11 @@ export default function App() {
         <Toaster
           position="top-center"
           toastOptions={{
-            style: { background: '#141414', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' },
+            style: {
+              background: '#141414',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.1)',
+            },
             success: { iconTheme: { primary: '#d4a017', secondary: '#000' } },
           }}
         />
@@ -34,6 +39,7 @@ export default function App() {
             <Route path="/employees"  element={<Employees />} />
             <Route path="/services"   element={<Services />} />
             <Route path="/restaurant" element={<Restaurant />} />
+            <Route path="/settings"   element={<Settings />} />
             <Route path="*"           element={<Navigate to="/" replace />} />
           </Routes>
         </main>

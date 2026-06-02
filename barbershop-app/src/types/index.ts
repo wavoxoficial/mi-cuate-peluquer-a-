@@ -58,6 +58,7 @@ export interface Booking {
   id: string;
   clientId: string;
   clientName: string;
+  clientPhone: string;
   employeeId: string;
   employeeName: string;
   serviceId: string;
@@ -68,6 +69,15 @@ export interface Booking {
   status: BookingStatus;
   notes: string;
   createdAt: string;
+}
+
+export interface AppSettings {
+  barberPhone: string;
+  barberName: string;
+  barberAddress: string;
+  whatsappConfirmTemplate: string;
+  whatsappReminderTemplate: string;
+  whatsappThanksTemplate: string;
 }
 
 export interface DashboardStats {

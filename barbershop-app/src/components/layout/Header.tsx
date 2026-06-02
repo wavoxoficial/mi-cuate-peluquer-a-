@@ -8,6 +8,7 @@ const titles: Record<string, string> = {
   '/employees':  'Empleados',
   '/services':   'Servicios',
   '/restaurant': 'Mi Cuate',
+  '/settings':   'Configuración',
 };
 
 export default function Header() {

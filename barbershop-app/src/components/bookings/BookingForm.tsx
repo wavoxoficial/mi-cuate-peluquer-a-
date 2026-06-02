@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { Booking } from '../../types';
 import toast from 'react-hot-toast';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import Modal from '../ui/Modal';
 import ClientForm from '../clients/ClientForm';
 
@@ -12,15 +12,15 @@ interface Props {
 }
 
 export default function BookingForm({ onClose, onSuccess }: Props) {
-  const { clients, employees, services, addBooking, addClient } = useStore();
+  const { clients, employees, services, addBooking } = useStore();
   const [showNewClient, setShowNewClient] = useState(false);
   const [form, setForm] = useState({
-    clientId: '',
+    clientId:   '',
     employeeId: '',
-    serviceId: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    time: '10:00',
-    notes: '',
+    serviceId:  '',
+    date:       format(new Date(), 'yyyy-MM-dd'),
+    time:       '10:00',
+    notes:      '',
   });
 
   const set = (k: keyof typeof form, v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -48,6 +48,7 @@ export default function BookingForm({ onClose, onSuccess }: Props) {
     const booking = addBooking({
       clientId:     form.clientId,
       clientName:   selectedClient!.name,
+      clientPhone:  selectedClient!.phone ?? '',
       employeeId:   form.employeeId,
       employeeName: selectedEmp!.name,
       serviceId:    form.serviceId,
@@ -78,9 +79,19 @@ export default function BookingForm({ onClose, onSuccess }: Props) {
           <select className="input" value={form.clientId} onChange={e => set('clientId', e.target.value)}>
             <option value="">Seleccionar cliente...</option>
             {clients.map(c => (
-              <option key={c.id} value={c.id}>{c.name} {c.phone ? `— ${c.phone}` : ''}</option>
+              <option key={c.id} value={c.id}>{c.name}{c.phone ? ` — ${c.phone}` : ''}</option>
             ))}
           </select>
+          {/* Show phone of selected client */}
+          {selectedClient?.phone && (
+            <p className="text-xs text-white/40 mt-1 flex items-center gap-1">
+              📱 {selectedClient.phone}
+              {!selectedClient.phone && <span className="text-yellow-500/70"> — Sin teléfono (no recibirá WhatsApp)</span>}
+            </p>
+          )}
+          {selectedClient && !selectedClient.phone && (
+            <p className="text-xs text-yellow-500/70 mt-1">⚠️ Sin teléfono — no recibirá mensajes WhatsApp</p>
+          )}
         </div>
 
         {/* Service */}

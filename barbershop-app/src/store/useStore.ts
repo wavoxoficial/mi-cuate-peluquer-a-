@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { Client, Employee, Service, Booking } from '../types';
+import { Client, Employee, Service, Booking, AppSettings } from '../types';
 import { saveToStorage, loadFromStorage, generateId } from '../utils/storage';
 import { seedClients, seedEmployees, seedServices, seedBookings } from '../utils/seed';
+import { DEFAULT_SETTINGS } from '../utils/whatsapp';
 import { format } from 'date-fns';
 
 interface AppState {
@@ -9,6 +10,7 @@ interface AppState {
   employees: Employee[];
   services: Service[];
   bookings: Booking[];
+  settings: AppSettings;
 
   // Clients
   addClient: (client: Omit<Client, 'id' | 'createdAt' | 'visitCount' | 'totalSpent' | 'lastVisit' | 'loyaltyPoints'>) => Client;
@@ -31,38 +33,56 @@ interface AppState {
   completeBooking: (id: string) => void;
   cancelBooking: (id: string) => void;
 
+  // Settings
+  updateSettings: (updates: Partial<AppSettings>) => void;
+
   // Init
   init: () => void;
 }
 
-const KEYS = { clients: 'clients', employees: 'employees', services: 'services', bookings: 'bookings', seeded: 'seeded' };
+const KEYS = {
+  clients:   'clients',
+  employees: 'employees',
+  services:  'services',
+  bookings:  'bookings',
+  settings:  'settings',
+  seeded:    'seeded',
+};
 
 export const useStore = create<AppState>((set, get) => ({
-  clients: [],
+  clients:   [],
   employees: [],
-  services: [],
-  bookings: [],
+  services:  [],
+  bookings:  [],
+  settings:  DEFAULT_SETTINGS,
 
   init: () => {
     const seeded = loadFromStorage<boolean>(KEYS.seeded, false);
     if (!seeded) {
-      saveToStorage(KEYS.clients, seedClients);
+      saveToStorage(KEYS.clients,   seedClients);
       saveToStorage(KEYS.employees, seedEmployees);
-      saveToStorage(KEYS.services, seedServices);
-      saveToStorage(KEYS.bookings, seedBookings);
-      saveToStorage(KEYS.seeded, true);
-      set({ clients: seedClients, employees: seedEmployees, services: seedServices, bookings: seedBookings });
+      saveToStorage(KEYS.services,  seedServices);
+      saveToStorage(KEYS.bookings,  seedBookings);
+      saveToStorage(KEYS.seeded,    true);
+      set({
+        clients:   seedClients,
+        employees: seedEmployees,
+        services:  seedServices,
+        bookings:  seedBookings,
+        settings:  loadFromStorage<AppSettings>(KEYS.settings, DEFAULT_SETTINGS),
+      });
     } else {
       set({
         clients:   loadFromStorage<Client[]>(KEYS.clients, []),
         employees: loadFromStorage<Employee[]>(KEYS.employees, []),
         services:  loadFromStorage<Service[]>(KEYS.services, []),
         bookings:  loadFromStorage<Booking[]>(KEYS.bookings, []),
+        settings:  loadFromStorage<AppSettings>(KEYS.settings, DEFAULT_SETTINGS),
       });
     }
   },
 
-  // ── CLIENTS ────────────────────────────────────────────────────────────────
+  // ── CLIENTS ──────────────────────────────────────────────────────────────
   addClient: (data) => {
     const client: Client = {
       ...data,
@@ -89,7 +109,7 @@ export const useStore = create<AppState>((set, get) => ({
     saveToStorage(KEYS.clients, clients);
   },
 
-  // ── EMPLOYEES ──────────────────────────────────────────────────────────────
+  // ── EMPLOYEES ────────────────────────────────────────────────────────────
   addEmployee: (data) => {
     const emp: Employee = { ...data, id: generateId(), createdAt: format(new Date(), 'yyyy-MM-dd') };
     const employees = [...get().employees, emp];
@@ -107,7 +127,7 @@ export const useStore = create<AppState>((set, get) => ({
     saveToStorage(KEYS.employees, employees);
   },
 
-  // ── SERVICES ───────────────────────────────────────────────────────────────
+  // ── SERVICES ─────────────────────────────────────────────────────────────
   addService: (data) => {
     const svc: Service = { ...data, id: generateId() };
     const services = [...get().services, svc];
@@ -125,7 +145,7 @@ export const useStore = create<AppState>((set, get) => ({
     saveToStorage(KEYS.services, services);
   },
 
-  // ── BOOKINGS ───────────────────────────────────────────────────────────────
+  // ── BOOKINGS ─────────────────────────────────────────────────────────────
   addBooking: (data) => {
     const booking: Booking = { ...data, id: generateId(), createdAt: new Date().toISOString() };
     const bookings = [...get().bookings, booking];
@@ -141,11 +161,11 @@ export const useStore = create<AppState>((set, get) => ({
   completeBooking: (id) => {
     const booking = get().bookings.find(b => b.id === id);
     if (!booking) return;
-    // Update booking status
-    const bookings = get().bookings.map(b => b.id === id ? { ...b, status: 'completed' as const } : b);
+    const bookings = get().bookings.map(b =>
+      b.id === id ? { ...b, status: 'completed' as const } : b
+    );
     set({ bookings });
     saveToStorage(KEYS.bookings, bookings);
-    // Update client stats
     const client = get().clients.find(c => c.id === booking.clientId);
     if (client) {
       const clients = get().clients.map(c =>
@@ -164,8 +184,17 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
   cancelBooking: (id) => {
-    const bookings = get().bookings.map(b => b.id === id ? { ...b, status: 'cancelled' as const } : b);
+    const bookings = get().bookings.map(b =>
+      b.id === id ? { ...b, status: 'cancelled' as const } : b
+    );
     set({ bookings });
     saveToStorage(KEYS.bookings, bookings);
+  },
+
+  // ── SETTINGS ─────────────────────────────────────────────────────────────
+  updateSettings: (updates) => {
+    const settings = { ...get().settings, ...updates };
+    set({ settings });
+    saveToStorage(KEYS.settings, settings);
   },
 }));

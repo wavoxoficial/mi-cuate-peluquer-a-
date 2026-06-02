@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { Client } from '../../types';
-import { Search, Plus, Phone, Mail, Star, Crown, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
+import { Search, Plus, Phone, Mail, Star, Crown, ChevronDown, ChevronUp, Pencil, Trash2, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Modal from '../ui/Modal';
 import toast from 'react-hot-toast';
 import ClientForm from './ClientForm';
+import { clientWhatsappLink } from '../../utils/whatsapp';
 
 export default function Clients() {
-  const { clients, bookings, deleteClient } = useStore();
-  const [search, setSearch] = useState('');
+  const { clients, bookings, deleteClient, settings } = useStore();
+  const [search,   setSearch]   = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Client | null>(null);
+  const [editing,  setEditing]  = useState<Client | null>(null);
 
   const filtered = clients.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -32,9 +33,9 @@ export default function Clients() {
   };
 
   const loyaltyTier = (points: number) => {
-    if (points >= 100) return { label: 'VIP', color: 'text-gold-400', bg: 'bg-gold-600/15' };
+    if (points >= 100) return { label: 'VIP',      color: 'text-gold-400',   bg: 'bg-gold-600/15' };
     if (points >= 50)  return { label: 'Frecuente', color: 'text-purple-400', bg: 'bg-purple-500/15' };
-    return { label: 'Nuevo', color: 'text-blue-400', bg: 'bg-blue-500/15' };
+    return               { label: 'Nuevo',      color: 'text-blue-400',   bg: 'bg-blue-500/15' };
   };
 
   return (
@@ -45,7 +46,8 @@ export default function Clients() {
           <h2 className="text-xl font-bold text-white">Clientes</h2>
           <p className="text-white/40 text-sm">{clients.length} registrados</p>
         </div>
-        <button onClick={() => { setEditing(null); setShowForm(true); }} className="btn-primary flex items-center gap-1.5 text-sm">
+        <button onClick={() => { setEditing(null); setShowForm(true); }}
+          className="btn-primary flex items-center gap-1.5 text-sm">
           <Plus size={16} /> Nuevo
         </button>
       </div>
@@ -53,12 +55,8 @@ export default function Clients() {
       {/* Search */}
       <div className="relative fade-in">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-        <input
-          className="input pl-9"
-          placeholder="Buscar por nombre, teléfono o email..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+        <input className="input pl-9" placeholder="Buscar por nombre, teléfono o email..."
+          value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
       {/* Client list */}
@@ -68,13 +66,15 @@ export default function Clients() {
             <p className="text-white/30">No se encontraron clientes</p>
           </div>
         )}
+
         {filtered.map(client => {
-          const tier = loyaltyTier(client.loyaltyPoints);
+          const tier   = loyaltyTier(client.loyaltyPoints);
           const isOpen = expanded === client.id;
           const clientBookings = getClientBookings(client.id);
+          const hasPhone = !!client.phone;
+
           return (
             <div key={client.id} className="card overflow-hidden">
-              {/* Client row */}
               <div className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -92,7 +92,17 @@ export default function Clients() {
                       </div>
                     </div>
                   </div>
+
                   <div className="flex items-center gap-1">
+                    {/* WhatsApp button */}
+                    {hasPhone && (
+                      <a href={clientWhatsappLink(client.phone, client.name, settings)}
+                        target="_blank" rel="noopener noreferrer"
+                        className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400 hover:bg-green-500/20 transition-colors"
+                        title="Abrir WhatsApp">
+                        <MessageCircle size={13} />
+                      </a>
+                    )}
                     <button onClick={() => { setEditing(client); setShowForm(true); }}
                       className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/50 hover:text-gold-400 hover:bg-gold-600/10 transition-colors">
                       <Pencil size={13} />
@@ -108,7 +118,7 @@ export default function Clients() {
                   </div>
                 </div>
 
-                {/* Contact info */}
+                {/* Contact */}
                 <div className="mt-3 flex flex-col gap-1.5">
                   {client.phone && (
                     <div className="flex items-center gap-2 text-sm text-white/50">
@@ -119,6 +129,11 @@ export default function Clients() {
                     <div className="flex items-center gap-2 text-sm text-white/50">
                       <Mail size={12} /><span>{client.email}</span>
                     </div>
+                  )}
+                  {!hasPhone && (
+                    <p className="text-xs text-yellow-500/50 flex items-center gap-1">
+                      ⚠️ Sin teléfono — edita para agregar WhatsApp
+                    </p>
                   )}
                 </div>
 
@@ -134,7 +149,9 @@ export default function Clients() {
                   </div>
                   <div className="bg-white/5 rounded-xl p-2 text-center">
                     <p className="text-gold-400 font-bold text-xs">
-                      {client.lastVisit ? format(new Date(client.lastVisit + 'T00:00:00'), 'd MMM', { locale: es }) : '—'}
+                      {client.lastVisit
+                        ? format(new Date(client.lastVisit + 'T00:00:00'), 'd MMM', { locale: es })
+                        : '—'}
                     </p>
                     <p className="text-white/40 text-[10px]">última</p>
                   </div>
@@ -150,7 +167,9 @@ export default function Clients() {
                     </h4>
                     {client.notes && (
                       <div className="bg-gold-600/10 rounded-xl p-3 mb-3 border border-gold-600/20">
-                        <p className="text-xs text-white/60"><span className="text-gold-400 font-medium">Notas:</span> {client.notes}</p>
+                        <p className="text-xs text-white/60">
+                          <span className="text-gold-400 font-medium">Notas:</span> {client.notes}
+                        </p>
                       </div>
                     )}
                     {clientBookings.length === 0 ? (
@@ -158,13 +177,16 @@ export default function Clients() {
                     ) : (
                       <div className="flex flex-col gap-2">
                         {clientBookings.slice(0, 5).map(b => (
-                          <div key={b.id} className="flex items-center justify-between bg-white/3 rounded-xl p-3">
+                          <div key={b.id}
+                            className="flex items-center justify-between bg-white/3 rounded-xl p-3">
                             <div>
                               <p className="text-sm text-white font-medium">{b.serviceName}</p>
                               <p className="text-xs text-white/40">{b.employeeName}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-xs text-white/50">{format(new Date(b.date + 'T00:00:00'), 'd MMM yyyy', { locale: es })}</p>
+                              <p className="text-xs text-white/50">
+                                {format(new Date(b.date + 'T00:00:00'), 'd MMM yyyy', { locale: es })}
+                              </p>
                               <p className="text-xs text-gold-400 font-semibold">${b.servicePrice}</p>
                             </div>
                           </div>
@@ -179,7 +201,8 @@ export default function Clients() {
         })}
       </div>
 
-      <Modal open={showForm} onClose={() => setShowForm(false)} title={editing ? 'Editar Cliente' : 'Nuevo Cliente'}>
+      <Modal open={showForm} onClose={() => setShowForm(false)}
+        title={editing ? 'Editar Cliente' : 'Nuevo Cliente'}>
         <ClientForm client={editing} onClose={() => setShowForm(false)} />
       </Modal>
     </div>
