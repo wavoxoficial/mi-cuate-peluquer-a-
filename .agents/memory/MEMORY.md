@@ -1,0 +1,2 @@
+- [BarberPro Auth System](barberpro-auth.md) — localStorage auth with 3 roles; default admin/employee/client demo accounts; route protection by role.
+- [BarberPro Android CSS Fixes](barberpro-android.md) — key mobile CSS rules applied to prevent Android visual bugs.

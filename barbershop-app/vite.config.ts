@@ -25,10 +25,27 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
-      }
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        cleanupOutdatedCaches: true,
+        sourcemap: false,
+      },
+      devOptions: { enabled: false }
     })
   ],
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['lucide-react', 'clsx'],
+          store: ['zustand'],
+          date: ['date-fns'],
+        }
+      }
+    }
+  },
   server: {
     host: '0.0.0.0',
     port: 5000,

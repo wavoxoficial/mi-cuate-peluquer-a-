@@ -1,3 +1,25 @@
+export type UserRole = 'admin' | 'employee' | 'client';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  password: string; // stored as-is (localStorage — no server)
+  role: UserRole;
+  employeeId?: string; // linked employee record
+  clientId?: string;   // linked client record
+  createdAt: string;
+  isActive: boolean;
+}
+
+export interface AuthSession {
+  userId: string;
+  role: UserRole;
+  name: string;
+  email: string;
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -64,6 +86,7 @@ export interface Booking {
   serviceId: string;
   serviceName: string;
   servicePrice: number;
+  serviceDuration: number;
   date: string;
   time: string;
   status: BookingStatus;
@@ -78,13 +101,4 @@ export interface AppSettings {
   whatsappConfirmTemplate: string;
   whatsappReminderTemplate: string;
   whatsappThanksTemplate: string;
-}
-
-export interface DashboardStats {
-  todayBookings: number;
-  todayRevenue: number;
-  monthRevenue: number;
-  totalClients: number;
-  nextBooking: Booking | null;
-  topServices: { name: string; count: number }[];
 }

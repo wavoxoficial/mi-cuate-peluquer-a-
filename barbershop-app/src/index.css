@@ -6,112 +6,256 @@
   * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
   }
 
-  html, body {
+  html {
+    scroll-behavior: smooth;
+    height: 100%;
+    /* Prevent layout shift from address bar on mobile */
+    height: -webkit-fill-available;
+  }
+
+  body {
     @apply bg-dark-400 text-white;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    /* Allow vertical scrolling, never horizontal */
+    overflow-y: auto;
+    /* Smooth scrolling on Android */
+    -webkit-overflow-scrolling: touch;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+    /* Prevent text size adjust on orientation change */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   #root {
-    min-height: 100dvh;
+    min-height: 100svh;
     display: flex;
     flex-direction: column;
+    position: relative;
   }
 
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+  /* Prevent font size zoom on inputs in iOS/Android */
+  input, select, textarea {
+    font-size: 16px !important;
+    font-family: 'Inter', system-ui, sans-serif;
   }
-  ::-webkit-scrollbar-track { background: #0a0a0a; }
+
+  /* Remove default select arrow on Android */
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Remove default input styling on iOS */
+  input[type="date"],
+  input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Custom scrollbar (desktop) */
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #d4a017; border-radius: 2px; }
 }
 
 @layer components {
+  /* ── Cards ────────────────────────────────────────────────── */
   .card {
     @apply bg-dark-100 rounded-2xl border border-white/5;
+    /* Prevent card rendering artifacts on Android */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   .card-gold {
     @apply bg-dark-100 rounded-2xl border border-gold-600/30;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
+  /* ── Buttons ──────────────────────────────────────────────── */
   .btn-primary {
-    @apply bg-gold-600 hover:bg-gold-500 text-black font-semibold px-4 py-2.5 rounded-xl
-           transition-all duration-200 active:scale-95 shadow-gold;
+    @apply bg-gold-600 text-black font-semibold px-4 py-3 rounded-xl
+           transition-all duration-150 shadow-gold;
+    /* Hardware-accelerated touch feedback */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-height: 44px; /* Apple/Google min touch target */
+    cursor: pointer;
+    border: none;
+    outline: none;
+    text-decoration: none;
   }
+  .btn-primary:active { transform: scale(0.97); }
 
   .btn-secondary {
-    @apply bg-white/5 hover:bg-white/10 text-white font-medium px-4 py-2.5 rounded-xl
-           border border-white/10 transition-all duration-200 active:scale-95;
+    @apply bg-white/5 text-white font-medium px-4 py-3 rounded-xl
+           border border-white/10 transition-all duration-150;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    cursor: pointer;
+    outline: none;
+    text-decoration: none;
   }
+  .btn-secondary:active { transform: scale(0.97); }
 
   .btn-danger {
-    @apply bg-red-500/10 hover:bg-red-500/20 text-red-400 font-medium px-4 py-2.5 rounded-xl
-           border border-red-500/20 transition-all duration-200 active:scale-95;
+    @apply bg-red-500/10 text-red-400 font-medium px-4 py-3 rounded-xl
+           border border-red-500/20 transition-all duration-150;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 44px;
+    cursor: pointer;
   }
+  .btn-danger:active { transform: scale(0.97); }
 
+  /* ── Inputs ───────────────────────────────────────────────── */
   .input {
     @apply bg-dark-300 border border-white/10 rounded-xl px-4 py-3 text-white
-           placeholder-white/30 focus:outline-none focus:border-gold-600/60 focus:ring-1
-           focus:ring-gold-600/30 transition-all duration-200 w-full;
+           placeholder-white/30 focus:outline-none focus:border-gold-600/60
+           transition-all duration-200 w-full;
+    font-size: 16px; /* Prevent zoom on mobile */
+    line-height: 1.5;
+    min-height: 48px;
+    color: white;
+    background-color: #0d0d0d;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .input:focus {
+    box-shadow: 0 0 0 2px rgba(212, 160, 23, 0.2);
+  }
+  /* Fix select arrow */
+  select.input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff60' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  textarea.input {
+    min-height: auto;
+    resize: none;
   }
 
   .label {
     @apply text-white/60 text-sm font-medium mb-1.5 block;
   }
 
-  .gold-text {
-    @apply text-gold-400;
+  /* ── Layout helpers ───────────────────────────────────────── */
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 1rem calc(5.5rem + env(safe-area-inset-bottom, 0px)) 1rem;
+    min-height: calc(100svh - 56px); /* header height */
   }
 
+  .gold-text { @apply text-gold-400; }
+
   .stat-card {
-    @apply card p-4 flex flex-col gap-1;
+    @apply card p-4;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    white-space: nowrap;
   }
 
   .nav-item {
-    @apply flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all duration-200
-           text-white/40 hover:text-white/80 cursor-pointer flex-1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0.5rem 0.375rem;
+    border-radius: 0.75rem;
+    transition: all 0.15s;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+    flex: 1;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    text-decoration: none;
+    min-height: 52px;
+    justify-content: center;
   }
+  .nav-item.active { color: #d4a017; }
+  .nav-item:active { transform: scale(0.95); }
 
-  .nav-item.active {
-    @apply text-gold-400;
-  }
-
-  .section-title {
-    @apply text-lg font-semibold text-white;
-  }
-
-  .page {
-    @apply flex flex-col gap-4 pb-24 pt-4 px-4 min-h-screen;
-  }
+  .section-title { @apply text-lg font-semibold text-white; }
 }
 
-/* Scrollable page content above bottom nav */
-.main-content {
-  flex: 1;
+/* ── Status badges ────────────────────────────────────────────── */
+.status-pending     { @apply bg-yellow-500/15 text-yellow-400 border border-yellow-500/20; }
+.status-confirmed   { @apply bg-blue-500/15 text-blue-400 border border-blue-500/20; }
+.status-in-progress { @apply bg-purple-500/15 text-purple-400 border border-purple-500/20; }
+.status-completed   { @apply bg-green-500/15 text-green-400 border border-green-500/20; }
+.status-cancelled   { @apply bg-red-500/15 text-red-400 border border-red-500/20; }
+
+/* ── Modal overlay — Android-safe ───────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* Prevent body scroll leakage on Android */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 640px) {
+  .modal-overlay { align-items: center; }
+}
+
+.modal-panel {
+  background: #141414;
+  border-radius: 1.5rem 1.5rem 0 0;
+  width: 100%;
+  max-width: 32rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  max-height: 92svh;
   overflow-y: auto;
-  padding-bottom: 80px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  /* Prevent card render artifacts */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+@media (min-width: 640px) {
+  .modal-panel { border-radius: 1.5rem; }
 }
 
-/* Smooth scroll */
-html { scroll-behavior: smooth; }
-
-/* Status badges */
-.status-pending    { @apply bg-yellow-500/15 text-yellow-400 border border-yellow-500/20; }
-.status-confirmed  { @apply bg-blue-500/15 text-blue-400 border border-blue-500/20; }
-.status-in-progress{ @apply bg-purple-500/15 text-purple-400 border border-purple-500/20; }
-.status-completed  { @apply bg-green-500/15 text-green-400 border border-green-500/20; }
-.status-cancelled  { @apply bg-red-500/15 text-red-400 border border-red-500/20; }
-
-/* Gold shimmer animation */
+/* ── Gold shimmer ─────────────────────────────────────────────── */
 @keyframes goldShimmer {
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
@@ -125,18 +269,74 @@ html { scroll-behavior: smooth; }
   animation: goldShimmer 3s linear infinite;
 }
 
-/* Fade in */
+/* ── Fade in ──────────────────────────────────────────────────── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.fade-in { animation: fadeIn 0.3s ease-out; }
+.fade-in { animation: fadeIn 0.25s ease-out both; }
 
-/* Modal overlay */
-.modal-overlay {
-  @apply fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center;
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.modal-panel {
-  @apply bg-dark-100 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg border border-white/10
-         max-h-[90dvh] overflow-y-auto;
+.slide-up { animation: slideUp 0.3s ease-out both; }
+
+/* ── Auth pages ───────────────────────────────────────────────── */
+.auth-page {
+  min-height: 100svh;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  padding-top: max(1.5rem, env(safe-area-inset-top));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+/* ── Bottom nav safe area ─────────────────────────────────────── */
+.bottom-nav-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* ── Horizontal scroll (category filters) ────────────────────── */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  padding-bottom: 2px;
+}
+.scroll-x::-webkit-scrollbar { display: none; }
+
+/* ── Icon button ──────────────────────────────────────────────── */
+.icon-btn {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.5);
+  transition: all 0.15s;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  border: none;
+  outline: none;
+  flex-shrink: 0;
+  min-width: 2rem;
+  min-height: 2rem;
+}
+.icon-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+.icon-btn.gold:active { background: rgba(212,160,23,0.15); color: #d4a017; }
+.icon-btn.danger:active { background: rgba(239,68,68,0.15); color: #f87171; }
+.icon-btn.green:active { background: rgba(34,197,94,0.15); color: #4ade80; }
+
+/* ── Divider ──────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: rgba(255,255,255,0.05);
 }

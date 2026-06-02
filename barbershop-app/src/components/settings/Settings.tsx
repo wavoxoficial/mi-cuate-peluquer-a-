@@ -1,110 +1,137 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
-import { AppSettings } from '../../types';
-import { Settings as SettingsIcon, MessageCircle, Phone, MapPin, Store, Save, RotateCcw } from 'lucide-react';
 import { DEFAULT_SETTINGS } from '../../utils/whatsapp';
+import { Store, MessageCircle, Save, RotateCcw, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+type Tab = 'business' | 'whatsapp';
 
 export default function Settings() {
   const { settings, updateSettings } = useStore();
-  const [form, setForm] = useState<AppSettings>({ ...settings });
-  const [tab, setTab] = useState<'general' | 'whatsapp'>('general');
+  const [tab, setTab]     = useState<Tab>('business');
+  const [form, setForm]   = useState(settings);
+  const [saved, setSaved] = useState(false);
 
-  const set = (k: keyof AppSettings, v: string) => setForm(f => ({ ...f, [k]: v }));
+  useEffect(() => { setForm(settings); }, [settings]);
+
+  const set = (k: keyof typeof form, v: string) => {
+    setForm(f => ({ ...f, [k]: v }));
+    setSaved(false);
+  };
 
   const handleSave = () => {
     updateSettings(form);
+    setSaved(true);
     toast.success('Configuración guardada ✓');
+    setTimeout(() => setSaved(false), 3000);
   };
 
   const handleReset = () => {
-    const reset = { ...DEFAULT_SETTINGS };
+    if (!confirm('¿Restaurar plantillas de WhatsApp por defecto?')) return;
+    const reset = {
+      ...form,
+      whatsappConfirmTemplate:  DEFAULT_SETTINGS.whatsappConfirmTemplate,
+      whatsappReminderTemplate: DEFAULT_SETTINGS.whatsappReminderTemplate,
+      whatsappThanksTemplate:   DEFAULT_SETTINGS.whatsappThanksTemplate,
+    };
     setForm(reset);
     updateSettings(reset);
-    toast.success('Plantillas restauradas a valores por defecto');
+    toast.success('Plantillas restauradas');
   };
 
-  const VARS = [
-    { v: '{cliente}',   desc: 'Nombre del cliente' },
-    { v: '{fecha}',     desc: 'Fecha de la cita' },
-    { v: '{hora}',      desc: 'Hora de la cita' },
-    { v: '{servicio}',  desc: 'Servicio reservado' },
-    { v: '{empleado}',  desc: 'Nombre del barbero' },
-    { v: '{precio}',    desc: 'Precio del servicio' },
-    { v: '{negocio}',   desc: 'Nombre de tu negocio' },
-    { v: '{direccion}', desc: 'Dirección del negocio' },
-  ];
+  const VARS = ['{cliente}', '{servicio}', '{fecha}', '{hora}', '{empleado}', '{precio}', '{negocio}'];
 
   return (
     <div className="page">
-      {/* Header */}
-      <div className="fade-in">
-        <h2 className="text-xl font-bold text-white">Configuración</h2>
-        <p className="text-white/40 text-sm">Negocio y mensajes WhatsApp</p>
-      </div>
-
       {/* Tabs */}
-      <div className="flex gap-1 bg-dark-100 rounded-2xl p-1 fade-in">
-        {([
-          { key: 'general',  label: 'Mi Negocio', icon: Store },
-          { key: 'whatsapp', label: 'WhatsApp',   icon: MessageCircle },
-        ] as const).map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5
-              ${tab === t.key ? 'bg-gold-600 text-black' : 'text-white/50 hover:text-white/80'}`}>
-            <t.icon size={14} /> {t.label}
-          </button>
-        ))}
+      <div className="flex gap-2 bg-dark-100 rounded-2xl p-1 fade-in">
+        <button onClick={() => setTab('business')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all
+            ${tab === 'business' ? 'bg-gold-600 text-black shadow-gold' : 'text-white/50'}`}>
+          <Store size={15} /> Mi Negocio
+        </button>
+        <button onClick={() => setTab('whatsapp')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all
+            ${tab === 'whatsapp' ? 'bg-gold-600 text-black shadow-gold' : 'text-white/50'}`}>
+          <MessageCircle size={15} /> WhatsApp
+        </button>
       </div>
 
-      {/* ── GENERAL TAB ── */}
-      {tab === 'general' && (
+      {/* Business tab */}
+      {tab === 'business' && (
         <div className="flex flex-col gap-4 fade-in">
-          <div className="card p-4 flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+          <div className="card p-4">
+            <div className="flex items-center gap-2 mb-4">
               <Store size={15} className="text-gold-400" />
-              <h3 className="font-semibold text-white">Datos del negocio</h3>
+              <h3 className="font-semibold text-white text-sm">Datos del negocio</h3>
             </div>
-
-            <div>
-              <label className="label">Nombre de la peluquería</label>
-              <input className="input" placeholder="Ej. BarberPro Estudio" value={form.barberName}
-                onChange={e => set('barberName', e.target.value)} />
-            </div>
-
-            <div>
-              <label className="label flex items-center gap-1.5">
-                <Phone size={12} className="text-gold-400" /> Teléfono / WhatsApp del negocio
-              </label>
-              <input className="input" type="tel"
-                placeholder="Ej. 525551234567 (con código de país, sin +)"
-                value={form.barberPhone}
-                onChange={e => set('barberPhone', e.target.value)} />
-              <p className="text-white/30 text-xs mt-1">
-                Incluye código de país sin + (México = 52, España = 34)
-              </p>
-            </div>
-
-            <div>
-              <label className="label flex items-center gap-1.5">
-                <MapPin size={12} className="text-gold-400" /> Dirección
-              </label>
-              <input className="input" placeholder="Ej. Calle Principal 123, Ciudad"
-                value={form.barberAddress}
-                onChange={e => set('barberAddress', e.target.value)} />
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="label">Nombre de la peluquería</label>
+                <input className="input" placeholder="BarberPro"
+                  value={form.barberName} onChange={e => set('barberName', e.target.value)} />
+              </div>
+              <div>
+                <label className="label">📱 Teléfono / WhatsApp del negocio</label>
+                <input className="input" type="tel" inputMode="tel"
+                  placeholder="Ej. 525551234567 (código de país sin +)"
+                  value={form.barberPhone} onChange={e => set('barberPhone', e.target.value)} />
+                <p className="text-white/25 text-xs mt-1">Sin + (México = 52, España = 34)</p>
+              </div>
+              <div>
+                <label className="label">📍 Dirección</label>
+                <input className="input" placeholder="Ej. Calle Principal 123, Ciudad"
+                  value={form.barberAddress} onChange={e => set('barberAddress', e.target.value)} />
+              </div>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* WhatsApp API info card */}
-          <div className="card p-4 border border-blue-500/20 bg-blue-500/5 fade-in">
-            <div className="flex items-start gap-3">
-              <MessageCircle size={18} className="text-blue-400 flex-shrink-0 mt-0.5" />
+      {/* WhatsApp tab */}
+      {tab === 'whatsapp' && (
+        <div className="flex flex-col gap-4 fade-in">
+          <div className="card p-3">
+            <p className="text-white/40 text-xs font-semibold uppercase tracking-wide mb-2">Variables disponibles</p>
+            <div className="flex flex-wrap gap-1.5">
+              {VARS.map(v => (
+                <span key={v} className="bg-gold-600/10 border border-gold-600/20 text-gold-400 text-xs px-2 py-0.5 rounded-lg font-mono">
+                  {v}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="card p-4 flex flex-col gap-4">
+            <div>
+              <label className="label">✅ Confirmación de reserva</label>
+              <textarea className="input resize-none" rows={4}
+                value={form.whatsappConfirmTemplate}
+                onChange={e => set('whatsappConfirmTemplate', e.target.value)} />
+            </div>
+            <div>
+              <label className="label">🔔 Recordatorio</label>
+              <textarea className="input resize-none" rows={4}
+                value={form.whatsappReminderTemplate}
+                onChange={e => set('whatsappReminderTemplate', e.target.value)} />
+            </div>
+            <div>
+              <label className="label">🙏 Agradecimiento</label>
+              <textarea className="input resize-none" rows={4}
+                value={form.whatsappThanksTemplate}
+                onChange={e => set('whatsappThanksTemplate', e.target.value)} />
+            </div>
+          </div>
+          <button onClick={handleReset}
+            className="btn-secondary flex items-center justify-center gap-2 text-sm">
+            <RotateCcw size={14} /> Restaurar por defecto
+          </button>
+          <div className="bg-green-500/8 border border-green-500/20 rounded-2xl p-4">
+            <div className="flex items-start gap-2.5">
+              <MessageCircle size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-white font-semibold text-sm mb-1">Preparado para WhatsApp Business API</p>
-                <p className="text-white/50 text-xs leading-relaxed">
-                  La arquitectura está lista para integrar WhatsApp Business API oficial (Meta). 
-                  Actualmente los mensajes se generan via <span className="text-blue-400">wa.me</span> (gratuito). 
-                  Para automatización completa, conecta tu API Key de Meta en el futuro sin modificar el sistema.
+                <p className="text-green-400 font-semibold text-sm mb-1">Preparado para WhatsApp Business API</p>
+                <p className="text-white/40 text-xs leading-relaxed">
+                  Arquitectura lista para integrar con la API oficial de Meta. Actualmente los mensajes se envían vía enlaces <code className="text-green-400/70">wa.me</code>.
                 </p>
               </div>
             </div>
@@ -112,74 +139,11 @@ export default function Settings() {
         </div>
       )}
 
-      {/* ── WHATSAPP TAB ── */}
-      {tab === 'whatsapp' && (
-        <div className="flex flex-col gap-4 fade-in">
-          {/* Variables reference */}
-          <div className="card p-4">
-            <p className="text-gold-400 text-sm font-semibold mb-3 flex items-center gap-1.5">
-              <MessageCircle size={13} /> Variables disponibles
-            </p>
-            <div className="grid grid-cols-1 gap-1.5">
-              {VARS.map(v => (
-                <div key={v.v} className="flex items-center justify-between bg-dark-300/60 rounded-lg px-3 py-1.5">
-                  <code className="text-gold-400 text-xs font-mono">{v.v}</code>
-                  <span className="text-white/40 text-xs">{v.desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Confirmation */}
-          <div className="card p-4">
-            <label className="label text-sm font-semibold text-white flex items-center gap-1.5 mb-3">
-              ✅ Mensaje de confirmación
-            </label>
-            <textarea
-              className="input resize-none font-mono text-xs leading-relaxed"
-              rows={5}
-              value={form.whatsappConfirmTemplate}
-              onChange={e => set('whatsappConfirmTemplate', e.target.value)}
-            />
-          </div>
-
-          {/* Reminder */}
-          <div className="card p-4">
-            <label className="label text-sm font-semibold text-white flex items-center gap-1.5 mb-3">
-              🔔 Mensaje de recordatorio
-            </label>
-            <textarea
-              className="input resize-none font-mono text-xs leading-relaxed"
-              rows={5}
-              value={form.whatsappReminderTemplate}
-              onChange={e => set('whatsappReminderTemplate', e.target.value)}
-            />
-          </div>
-
-          {/* Thanks */}
-          <div className="card p-4">
-            <label className="label text-sm font-semibold text-white flex items-center gap-1.5 mb-3">
-              🙏 Mensaje de agradecimiento
-            </label>
-            <textarea
-              className="input resize-none font-mono text-xs leading-relaxed"
-              rows={4}
-              value={form.whatsappThanksTemplate}
-              onChange={e => set('whatsappThanksTemplate', e.target.value)}
-            />
-          </div>
-
-          {/* Reset */}
-          <button onClick={handleReset}
-            className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm hover:text-white/80 transition-colors">
-            <RotateCcw size={14} /> Restaurar plantillas por defecto
-          </button>
-        </div>
-      )}
-
       {/* Save */}
-      <button onClick={handleSave} className="btn-primary py-3 flex items-center justify-center gap-2 sticky bottom-24 w-full">
-        <Save size={16} /> Guardar configuración
+      <button onClick={handleSave}
+        className={`w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all
+          ${saved ? 'bg-green-500/15 border border-green-500/20 text-green-400' : 'bg-gold-600 text-black shadow-gold'}`}>
+        {saved ? <><CheckCircle size={15} /> Guardado</> : <><Save size={15} /> Guardar cambios</>}
       </button>
     </div>
   );
