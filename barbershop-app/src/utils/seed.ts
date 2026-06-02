@@ -1,0 +1,165 @@
+import { Client, Employee, Service, Booking } from '../types';
+import { generateId } from './storage';
+import { format, subDays, addDays } from 'date-fns';
+
+const today = new Date();
+const todayStr = format(today, 'yyyy-MM-dd');
+
+export const seedClients: Client[] = [
+  {
+    id: generateId(),
+    name: 'Carlos Mendoza',
+    phone: '+52 555 123 4567',
+    email: 'carlos@email.com',
+    notes: 'Prefiere corte fade bajo',
+    visitCount: 8,
+    totalSpent: 1200,
+    lastVisit: format(subDays(today, 7), 'yyyy-MM-dd'),
+    createdAt: format(subDays(today, 60), 'yyyy-MM-dd'),
+    loyaltyPoints: 80,
+  },
+  {
+    id: generateId(),
+    name: 'Miguel Ángel Torres',
+    phone: '+52 555 234 5678',
+    email: 'miguel@email.com',
+    notes: 'Alérgico a algunos tintes',
+    visitCount: 12,
+    totalSpent: 2400,
+    lastVisit: format(subDays(today, 3), 'yyyy-MM-dd'),
+    createdAt: format(subDays(today, 120), 'yyyy-MM-dd'),
+    loyaltyPoints: 120,
+  },
+  {
+    id: generateId(),
+    name: 'Roberto Sánchez',
+    phone: '+52 555 345 6789',
+    email: 'roberto@email.com',
+    notes: '',
+    visitCount: 5,
+    totalSpent: 750,
+    lastVisit: format(subDays(today, 14), 'yyyy-MM-dd'),
+    createdAt: format(subDays(today, 90), 'yyyy-MM-dd'),
+    loyaltyPoints: 50,
+  },
+];
+
+const emp1Id = generateId();
+const emp2Id = generateId();
+
+export const seedEmployees: Employee[] = [
+  {
+    id: emp1Id,
+    name: 'Juan "El Maestro" Pérez',
+    phone: '+52 555 400 0001',
+    email: 'juan@barberpro.com',
+    role: 'Barbero Senior',
+    avatar: 'JP',
+    services: [],
+    schedule: {
+      monday:    { isWorking: true,  start: '09:00', end: '18:00' },
+      tuesday:   { isWorking: true,  start: '09:00', end: '18:00' },
+      wednesday: { isWorking: true,  start: '09:00', end: '18:00' },
+      thursday:  { isWorking: true,  start: '09:00', end: '18:00' },
+      friday:    { isWorking: true,  start: '09:00', end: '20:00' },
+      saturday:  { isWorking: true,  start: '10:00', end: '17:00' },
+      sunday:    { isWorking: false, start: '10:00', end: '14:00' },
+    },
+    isActive: true,
+    createdAt: format(subDays(today, 180), 'yyyy-MM-dd'),
+  },
+  {
+    id: emp2Id,
+    name: 'Luis Ramírez',
+    phone: '+52 555 400 0002',
+    email: 'luis@barberpro.com',
+    role: 'Barbero',
+    avatar: 'LR',
+    services: [],
+    schedule: {
+      monday:    { isWorking: true,  start: '10:00', end: '19:00' },
+      tuesday:   { isWorking: true,  start: '10:00', end: '19:00' },
+      wednesday: { isWorking: false, start: '10:00', end: '19:00' },
+      thursday:  { isWorking: true,  start: '10:00', end: '19:00' },
+      friday:    { isWorking: true,  start: '10:00', end: '20:00' },
+      saturday:  { isWorking: true,  start: '09:00', end: '18:00' },
+      sunday:    { isWorking: false, start: '10:00', end: '14:00' },
+    },
+    isActive: true,
+    createdAt: format(subDays(today, 90), 'yyyy-MM-dd'),
+  },
+];
+
+export const seedServices: Service[] = [
+  { id: generateId(), name: 'Corte Clásico', description: 'Corte tradicional con tijeras y máquina', duration: 30, price: 150, category: 'Corte', isActive: true },
+  { id: generateId(), name: 'Corte + Barba', description: 'Corte completo con arreglo de barba', duration: 60, price: 250, category: 'Combo', isActive: true },
+  { id: generateId(), name: 'Fade / Degradado', description: 'Degradado bajo, medio o alto', duration: 45, price: 180, category: 'Corte', isActive: true },
+  { id: generateId(), name: 'Arreglo de Barba', description: 'Perfilado y arreglo de barba con navaja', duration: 30, price: 120, category: 'Barba', isActive: true },
+  { id: generateId(), name: 'Coloración', description: 'Tinte o matiz de cabello', duration: 90, price: 400, category: 'Color', isActive: true },
+  { id: generateId(), name: 'Tratamiento Hidratante', description: 'Hidratación profunda y nutrición capilar', duration: 45, price: 300, category: 'Tratamiento', isActive: true },
+  { id: generateId(), name: 'Corte Infantil', description: 'Corte para niños hasta 12 años', duration: 25, price: 100, category: 'Corte', isActive: true },
+  { id: generateId(), name: 'Afeitado Clásico', description: 'Afeitado completo con navaja y toalla caliente', duration: 45, price: 200, category: 'Barba', isActive: true },
+];
+
+export const seedBookings: Booking[] = [
+  {
+    id: generateId(),
+    clientId: seedClients[0].id,
+    clientName: seedClients[0].name,
+    employeeId: seedEmployees[0].id,
+    employeeName: seedEmployees[0].name,
+    serviceId: seedServices[0].id,
+    serviceName: seedServices[0].name,
+    servicePrice: seedServices[0].price,
+    date: todayStr,
+    time: '10:00',
+    status: 'confirmed',
+    notes: '',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: generateId(),
+    clientId: seedClients[1].id,
+    clientName: seedClients[1].name,
+    employeeId: seedEmployees[0].id,
+    employeeName: seedEmployees[0].name,
+    serviceId: seedServices[1].id,
+    serviceName: seedServices[1].name,
+    servicePrice: seedServices[1].price,
+    date: todayStr,
+    time: '11:30',
+    status: 'confirmed',
+    notes: 'Cliente frecuente',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: generateId(),
+    clientId: seedClients[2].id,
+    clientName: seedClients[2].name,
+    employeeId: seedEmployees[1].id,
+    employeeName: seedEmployees[1].name,
+    serviceId: seedServices[2].id,
+    serviceName: seedServices[2].name,
+    servicePrice: seedServices[2].price,
+    date: todayStr,
+    time: '14:00',
+    status: 'pending',
+    notes: '',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: generateId(),
+    clientId: seedClients[0].id,
+    clientName: seedClients[0].name,
+    employeeId: seedEmployees[1].id,
+    employeeName: seedEmployees[1].name,
+    serviceId: seedServices[3].id,
+    serviceName: seedServices[3].name,
+    servicePrice: seedServices[3].price,
+    date: format(addDays(today, 1), 'yyyy-MM-dd'),
+    time: '09:00',
+    status: 'pending',
+    notes: '',
+    createdAt: new Date().toISOString(),
+  },
+];
